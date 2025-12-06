@@ -1,1 +1,7 @@
 project_overview.md
+
+
+# Backend
+node_modules
+.env
+dist
