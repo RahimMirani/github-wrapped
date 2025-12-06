@@ -1,5 +1,6 @@
 import express from "express";
 import { getContributionCalendar } from "./github/contributions";
+import { getUserEvents } from "./github/events";
 import { WrappedResponse } from "./types";
 
 const app = express();
@@ -16,21 +17,25 @@ app.get("/api/wrapped/:username", async (req, res) => {
   const year = DEFAULT_YEAR;
 
   try {
-    const contrib = await getContributionCalendar(username, year);
+    const [contrib, events] = await Promise.all([
+      getContributionCalendar(username, year),
+      getUserEvents(username, year),
+    ]);
 
+    const totalContributions = contrib.totalContributions;
     const response: WrappedResponse = {
       username,
       generatedAt: new Date().toISOString(),
       meta: { fromCache: false, year },
       basicStats: {
-        totalContributions: contrib.totalContributions,
-        commitCount: contrib.totalContributions, // placeholder mapping
-        prOpened: 0,
-        prMerged: 0,
-        issuesOpened: 0,
-        issuesClosed: 0,
-        reviewsGiven: 0,
-        reposContributedTo: 0,
+        totalContributions,
+        commitCount: events.commitCount,
+        prOpened: events.prOpened,
+        prMerged: events.prMerged,
+        issuesOpened: events.issuesOpened,
+        issuesClosed: events.issuesClosed,
+        reviewsGiven: events.reviewsGiven,
+        reposContributedTo: events.reposContributedTo,
         starsEarned: 0,
         topLanguages: [],
         longestStreak: contrib.longestStreak,
