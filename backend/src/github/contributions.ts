@@ -1,5 +1,5 @@
 import { ghGraphQL } from "./client";
-import { DayActivity, StreakStat } from "../types";
+import type { DayActivity, StreakStat } from "../types";
 
 interface ContributionDay {
   contributionCount: number;
