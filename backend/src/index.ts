@@ -15,10 +15,12 @@ function computeFameScore(stars: number, forks: number, totalContributions: numb
   return Math.min(100, Math.round(score));
 }
 
+// Base url is http://localhost:3001
 app.get("/", (_req, res) => {
   res.json({ status: "Backend is running" });
 });
 
+// Github test endpoint
 app.get("/api/test/:username", async (req, res) => {
   const { username } = req.params;
   try {
@@ -36,6 +38,8 @@ app.get("/api/test/:username", async (req, res) => {
   }
 });
 
+
+// Main wrapped endpoint
 app.get("/api/wrapped/:username", async (req, res) => {
   const { username } = req.params;
   const year = DEFAULT_YEAR;
