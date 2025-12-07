@@ -13,6 +13,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^4.19.2"
   },
   "devDependencies": {

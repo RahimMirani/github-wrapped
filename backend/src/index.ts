@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import express from "express";
 import { getContributionCalendar } from "./github/contributions";
 import { getUserEvents } from "./github/events";
@@ -5,6 +6,8 @@ import { getUserReposWithLanguages } from "./github/repos";
 import { getUserProfile } from "./github/profile";
 import { WrappedResponse } from "./types";
 import { computeTemporalStats, computeKeywordCounts } from "./github/stats";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -83,7 +86,6 @@ app.get("/api/wrapped/:username", async (req, res) => {
       flexStats: {
         percentile: 0,
         fameScore: repos.starsEarned, // placeholder heuristic
-        eliteBadges: [],
         forksReceived: repos.forksReceived,
         collabCount: 0,
         eliteBadges: repos.eliteRepos.map((name) => `Elite repo: ${name}`),
