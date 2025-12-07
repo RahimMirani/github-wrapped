@@ -54,6 +54,7 @@ export async function getUserEvents(username: string, year: number, maxPages = 5
           reviewsGiven,
           reposContributedTo: repos.size,
           eventTimestamps,
+          commitMessages,
         };
       }
       if (ts > yearEnd) continue; // future-dated safety
@@ -109,7 +110,6 @@ export async function getUserEvents(username: string, year: number, maxPages = 5
     reviewsGiven,
     reposContributedTo: repos.size,
     eventTimestamps,
-          commitMessages,
     commitMessages,
   };
 }
