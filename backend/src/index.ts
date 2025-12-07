@@ -3,12 +3,16 @@ import { getContributionCalendar } from "./github/contributions";
 import { getUserEvents } from "./github/events";
 import { getUserReposWithLanguages } from "./github/repos";
 import { WrappedResponse } from "./types";
-import { computeTemporalStats } from "./github/stats";
+import { computeTemporalStats, computeKeywordCounts } from "./github/stats";
 
 const app = express();
 app.use(express.json());
 
 const DEFAULT_YEAR = 2025;
+function computeFameScore(stars: number, forks: number, totalContributions: number) {
+  const score = Math.log10(1 + stars * 2 + forks * 3 + totalContributions) * 20;
+  return Math.min(100, Math.round(score));
+}
 
 app.get("/", (_req, res) => {
   res.json({ status: "Backend is running" });
@@ -26,7 +30,9 @@ app.get("/api/wrapped/:username", async (req, res) => {
     ]);
 
     const temporal = computeTemporalStats(events.eventTimestamps);
+    const keywords = computeKeywordCounts(events.commitMessages);
     const totalContributions = contrib.totalContributions;
+    const fameScore = computeFameScore(repos.starsEarned, repos.forksReceived, totalContributions);
     const response: WrappedResponse = {
       username,
       generatedAt: new Date().toISOString(),
@@ -50,11 +56,12 @@ app.get("/api/wrapped/:username", async (req, res) => {
         eliteBadges: [],
         forksReceived: repos.forksReceived,
         collabCount: 0,
+        eliteBadges: repos.eliteRepos.map((name) => `Elite repo: ${name}`),
       },
       roastStats: {
         nightOwlPct: temporal.nightOwlPct,
         weekendPct: temporal.weekendPct,
-        commitMessageWords: [],
+        commitMessageWords: keywords,
         mergeConflictSurvivor: 0,
         refactorRatio: 0,
       },

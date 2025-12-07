@@ -25,3 +25,24 @@ export function computeTemporalStats(timestamps: string[]) {
   };
 }
 
+const DEFAULT_KEYWORDS = ["fix", "bug", "wip", "hack", "temp", "hotfix", "refactor"];
+
+export function computeKeywordCounts(messages: string[], keywords = DEFAULT_KEYWORDS) {
+  const counts = new Map<string, number>();
+  const normalized = keywords.map((k) => k.toLowerCase());
+
+  for (const msg of messages) {
+    const lower = msg.toLowerCase();
+    for (const kw of normalized) {
+      if (lower.includes(kw)) {
+        counts.set(kw, (counts.get(kw) ?? 0) + 1);
+      }
+    }
+  }
+
+  return Array.from(counts.entries())
+    .map(([word, count]) => ({ word, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+}
+

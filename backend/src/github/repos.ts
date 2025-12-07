@@ -33,6 +33,7 @@ export interface RepoAggregates {
   reposAnalyzed: number;
   starsEarned: number;
   forksReceived: number;
+  eliteRepos: string[];
 }
 
 export async function getUserReposWithLanguages(username: string, maxPages = 4): Promise<RepoAggregates> {
@@ -42,6 +43,7 @@ export async function getUserReposWithLanguages(username: string, maxPages = 4):
   let stars = 0;
   let forks = 0;
   let repoCount = 0;
+  const eliteRepos: string[] = [];
 
   while (hasNext && repoCount < REPOS_PER_PAGE * maxPages) {
     const query = `
@@ -69,7 +71,7 @@ export async function getUserReposWithLanguages(username: string, maxPages = 4):
       }
     `;
 
-    const data = await ghGraphQL<ReposResponse>(query, { username, after: cursor });
+    const data = await ghGraphQL<ReposResponse>(query, { username, after: cursor }) as ReposResponse;
     if (!data.user) throw new Error("User not found");
 
     const repos = data.user.repositories.nodes;
@@ -77,6 +79,7 @@ export async function getUserReposWithLanguages(username: string, maxPages = 4):
     for (const repo of repos) {
       stars += repo.stargazerCount;
       forks += repo.forkCount;
+      if (repo.stargazerCount >= 1000) eliteRepos.push(repo.name);
       for (const edge of repo.languages.edges) {
         const name = edge.node.name;
         const size = edge.size;
@@ -99,6 +102,7 @@ export async function getUserReposWithLanguages(username: string, maxPages = 4):
     reposAnalyzed: repoCount,
     starsEarned: stars,
     forksReceived: forks,
+    eliteRepos,
   };
 }
 

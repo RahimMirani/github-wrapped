@@ -9,6 +9,7 @@ export interface EventStats {
   reviewsGiven: number;
   reposContributedTo: number;
   eventTimestamps: string[];
+  commitMessages: string[];
 }
 
 interface GithubEvent {
@@ -32,6 +33,7 @@ export async function getUserEvents(username: string, year: number, maxPages = 5
   let reviewsGiven = 0;
   const repos = new Set<string>();
   const eventTimestamps: string[] = [];
+  const commitMessages: string[] = [];
 
   for (let page = 1; page <= maxPages; page++) {
     const events = await ghGet<GithubEvent[]>(
@@ -63,6 +65,11 @@ export async function getUserEvents(username: string, year: number, maxPages = 5
         case "PushEvent": {
           const commits = Array.isArray(ev.payload?.commits) ? ev.payload.commits.length : 0;
           commitCount += commits;
+          if (Array.isArray(ev.payload?.commits)) {
+            for (const c of ev.payload.commits) {
+              if (typeof c?.message === "string") commitMessages.push(c.message);
+            }
+          }
           break;
         }
         case "PullRequestEvent": {
@@ -102,6 +109,8 @@ export async function getUserEvents(username: string, year: number, maxPages = 5
     reviewsGiven,
     reposContributedTo: repos.size,
     eventTimestamps,
+          commitMessages,
+    commitMessages,
   };
 }
 
