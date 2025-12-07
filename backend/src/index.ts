@@ -2,6 +2,7 @@ import express from "express";
 import { getContributionCalendar } from "./github/contributions";
 import { getUserEvents } from "./github/events";
 import { WrappedResponse } from "./types";
+import { computeTemporalStats } from "./github/stats";
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.get("/api/wrapped/:username", async (req, res) => {
       getUserEvents(username, year),
     ]);
 
+    const temporal = computeTemporalStats(events.eventTimestamps);
     const totalContributions = contrib.totalContributions;
     const response: WrappedResponse = {
       username,
@@ -48,8 +50,8 @@ app.get("/api/wrapped/:username", async (req, res) => {
         collabCount: 0,
       },
       roastStats: {
-        nightOwlPct: 0,
-        weekendPct: 0,
+        nightOwlPct: temporal.nightOwlPct,
+        weekendPct: temporal.weekendPct,
         commitMessageWords: [],
         mergeConflictSurvivor: 0,
         refactorRatio: 0,
