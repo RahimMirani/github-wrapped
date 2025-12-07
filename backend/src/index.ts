@@ -1,6 +1,7 @@
 import express from "express";
 import { getContributionCalendar } from "./github/contributions";
 import { getUserEvents } from "./github/events";
+import { getUserReposWithLanguages } from "./github/repos";
 import { WrappedResponse } from "./types";
 import { computeTemporalStats } from "./github/stats";
 
@@ -18,9 +19,10 @@ app.get("/api/wrapped/:username", async (req, res) => {
   const year = DEFAULT_YEAR;
 
   try {
-    const [contrib, events] = await Promise.all([
+    const [contrib, events, repos] = await Promise.all([
       getContributionCalendar(username, year),
       getUserEvents(username, year),
+      getUserReposWithLanguages(username),
     ]);
 
     const temporal = computeTemporalStats(events.eventTimestamps);
@@ -38,15 +40,15 @@ app.get("/api/wrapped/:username", async (req, res) => {
         issuesClosed: events.issuesClosed,
         reviewsGiven: events.reviewsGiven,
         reposContributedTo: events.reposContributedTo,
-        starsEarned: 0,
-        topLanguages: [],
+        starsEarned: repos.starsEarned,
+        topLanguages: repos.topLanguages,
         longestStreak: contrib.longestStreak,
       },
       flexStats: {
         percentile: 0,
-        fameScore: 0,
+        fameScore: repos.starsEarned, // placeholder heuristic
         eliteBadges: [],
-        forksReceived: 0,
+        forksReceived: repos.forksReceived,
         collabCount: 0,
       },
       roastStats: {
