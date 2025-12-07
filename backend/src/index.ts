@@ -2,6 +2,7 @@ import express from "express";
 import { getContributionCalendar } from "./github/contributions";
 import { getUserEvents } from "./github/events";
 import { getUserReposWithLanguages } from "./github/repos";
+import { getUserProfile } from "./github/profile";
 import { WrappedResponse } from "./types";
 import { computeTemporalStats, computeKeywordCounts } from "./github/stats";
 
@@ -18,12 +19,30 @@ app.get("/", (_req, res) => {
   res.json({ status: "Backend is running" });
 });
 
+app.get("/api/test/:username", async (req, res) => {
+  const { username } = req.params;
+  try {
+    const profile = await getUserProfile(username);
+    res.json({
+      username: profile.login,
+      name: profile.name,
+      publicRepos: profile.public_repos,
+      followers: profile.followers,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    const status = message.includes("404") || message.includes("not found") ? 404 : 500;
+    res.status(status).json({ error: message });
+  }
+});
+
 app.get("/api/wrapped/:username", async (req, res) => {
   const { username } = req.params;
   const year = DEFAULT_YEAR;
 
   try {
-    const [contrib, events, repos] = await Promise.all([
+    const [profile, contrib, events, repos] = await Promise.all([
+      getUserProfile(username),
       getContributionCalendar(username, year),
       getUserEvents(username, year),
       getUserReposWithLanguages(username),
@@ -35,6 +54,13 @@ app.get("/api/wrapped/:username", async (req, res) => {
     const fameScore = computeFameScore(repos.starsEarned, repos.forksReceived, totalContributions);
     const response: WrappedResponse = {
       username,
+      profile: {
+        login: profile.login,
+        name: profile.name,
+        avatarUrl: profile.avatar_url,
+        followers: profile.followers,
+        publicRepos: profile.public_repos,
+      },
       generatedAt: new Date().toISOString(),
       meta: { fromCache: false, year },
       basicStats: {

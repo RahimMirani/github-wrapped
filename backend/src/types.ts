@@ -67,6 +67,13 @@ export interface Timeline {
 
 export interface WrappedResponse {
   username: string;
+  profile: {
+    login: string;
+    name: string | null;
+    avatarUrl?: string;
+    followers: number;
+    publicRepos: number;
+  };
   generatedAt: string;
   meta: ResponseMeta;
   basicStats: BasicStats;
